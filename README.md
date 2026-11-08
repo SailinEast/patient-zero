@@ -86,25 +86,33 @@ complexity explanations.
 
 Milliseconds, average of 3 runs, from `java -cp out Bench`.
 
-| test | size | time |
-|---|---|---|
-| naive search | 20 000 / 40 000 / 80 000 | |
-| KMP | 20 000 / 40 000 / 80 000 | |
-| edit distance | 500 / 1000 / 2000 / 4000 | |
+| test          | size                     | time                                |
+|---------------|--------------------------|-------------------------------------|
+| naive search  | 20 000 / 40 000 / 80 000 | 67.3 ms / 116.7 ms / 219.8 ms       |
+| KMP           | 20 000 / 40 000 / 80 000 | 2.6 ms / 1.5 ms / 0.4 ms            |
+| edit distance | 500 / 1000 / 2000 / 4000 | 5.2 ms / 9.9 ms / 21.7 ms / 88.2 ms |
 
 What do the numbers say about how the time grows? When you double the size, by how much does each time grow? Two or three sentences.
+
+When the text length `n` doubles in part A, the naive search time roughly doubles
+(`67.3 -> 116.7 -> 219.8 ms`) because it performs ~2000 character comparisons at
+almost every position (`O(n * m)`), whereas KMP finishes in under 3 ms (even speeding
+up from 2.6 ms to 0.4 ms after JVM JIT warm-up) because it runs in linear `O(n + m)` time.
+In part B, once past the initial JVM warm-up on small sizes, doubling both strain
+lengths from 2000 to 4000 quadruples the edit distance time (`21.7 ms -> 88.2 ms`,
+about `4x`), which matches the quadratic `O(n * m)` table size.
 
 ## Complexity
 
 n is the length of the text (or of a strain), m the length of the pattern, k the length of the window, v the number of people. Fill in every algorithm you wrote.
 
-| algorithm | time | space | assumptions |
-|---|---|---|---|
-| Edit distance | | | |
-| LCS | | | |
-| Prefix function and KMP | | | |
-| Rabin-Karp (shared words) | | | |
-| Tree DP | | | |
+| algorithm                 | time                                   | space    | assumptions                                                                                                                                                    |
+|---------------------------|----------------------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Edit distance             | O(n * m)                               | O(n * m) | `n` and `m` are the lengths of strains A and B; filling each cell of the `(n+1) x (m+1)` table takes `O(1)` time.                                              |
+| LCS                       | O(n * m)                               | O(n * m) | `n` and `m` are the lengths of strains A and B; we allocate and fill an `(n+1) x (m+1)` table in `O(1)` per cell.                                              |
+| Prefix function and KMP   | O(n + m)                               | O(m)     | Computing `pi` takes `O(m)` time and space, and scanning the text of length `n` increments and decrements `k` at most `n` times.                               |
+| Rabin-Karp (shared words) | O((n + m) * k) avg, O(n * m * k) worst | O(m)     | Rolling the hash updates in `O(1)` per step; with few collisions we only compare `k` letters on real matches, and the hash map stores `O(m)` positions from B. |
+| Tree DP                   | O(v)                                   | O(v)     | A tree has `v - 1` links, and the DFS visits every person and link a constant number of times using `O(v)` arrays and recursion stack.                         |
 
 ## Before you submit
 
