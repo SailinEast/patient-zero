@@ -69,7 +69,63 @@ public class Marker {
      * Example: a = "ACGTAC", b = "TTACGT", k = 4: the words of a are ACGT, CGTA, GTAC; only ACGT is in b, so the answer is 1.
      */
     public static int sharedWords(String a, String b, int k) {
-        // TODO Mission 4
-        return -1;
+        if (k <= 0 || a.length() < k || b.length() < k) return 0;
+
+        final long BASE = 131L;
+        final long MOD = 1_000_000_007L;
+
+        long topPower = 1L;
+        for (int i = 1; i < k; i++) {
+            topPower = (topPower * BASE) % MOD;
+        }
+
+        // Map each rolling hash in B to the list of start positions with that hash
+        Map<Long, List<Integer>> bWindows = new HashMap<>();
+        long hashB = 0;
+        for (int i = 0; i < k; i++) {
+            hashB = (hashB * BASE + b.charAt(i)) % MOD;
+        }
+        bWindows.computeIfAbsent(hashB, x -> new ArrayList<>()).add(0);
+
+        for (int i = 1; i + k <= b.length(); i++) {
+            hashB = (hashB - b.charAt(i - 1) * topPower % MOD + MOD) % MOD;
+            hashB = (hashB * BASE + b.charAt(i + k - 1)) % MOD;
+            bWindows.computeIfAbsent(hashB, x -> new ArrayList<>()).add(i);
+        }
+
+        // Roll across A and verify characters when hashes match
+        int sharedCount = 0;
+        long hashA = 0;
+        for (int i = 0; i < k; i++) {
+            hashA = (hashA * BASE + a.charAt(i)) % MOD;
+        }
+        if (matchesInB(a, 0, b, bWindows.get(hashA), k)) {
+            sharedCount++;
+        }
+
+        for (int i = 1; i + k <= a.length(); i++) {
+            hashA = (hashA - a.charAt(i - 1) * topPower % MOD + MOD) % MOD;
+            hashA = (hashA * BASE + a.charAt(i + k - 1)) % MOD;
+            if (matchesInB(a, i, b, bWindows.get(hashA), k)) {
+                sharedCount++;
+            }
+        }
+
+        return sharedCount;
+    }
+
+    private static boolean matchesInB(String a, int posA, String b, List<Integer> candidates, int k) {
+        if (candidates == null) return false;
+        for (int posB : candidates) {
+            boolean same = true;
+            for (int j = 0; j < k; j++) {
+                if (a.charAt(posA + j) != b.charAt(posB + j)) {
+                    same = false;
+                    break;
+                }
+            }
+            if (same) return true;
+        }
+        return false;
     }
 }
